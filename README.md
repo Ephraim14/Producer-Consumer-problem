@@ -411,3 +411,66 @@ public class Producer_Consumer_MINI_PROJECT {
         consumerThread.start();
     }
 }
+
+public class SocketProducer {
+
+    private ServerSocket serverSocket;
+
+    public SocketProducer() throws IOException {
+        serverSocket = new ServerSocket(8080);
+    }
+
+    public void start() throws IOException {
+        while (true) {
+            Socket socket = serverSocket.accept();
+            System.out.println("New client connected: " + socket.getRemoteSocketAddress());
+
+            // Create a producer thread to handle the client connection
+            ProducerThread producerThread = new ProducerThread(socket);
+            producerThread.start();
+        }
+    }
+
+    private class ProducerThread extends Thread {
+
+        private Socket socket;
+
+        public ProducerThread(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run() {
+            try {
+                // Create a data output stream to write data to the client
+                DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+
+                // Send the student data to the client
+                ITStudent student = generateRandomStudent();
+                dos.writeUTF(student.getStudentName());
+                dos.writeUTF(student.getStudentID());
+                dos.writeUTF(student.getProgramme());
+
+w2                // Send the list of courses and marks to the client
+                List<String> courses = student.getCourses();
+                List<Integer> marks = student.getMarks();
+                for (int i = 0; i < courses.size(); i++) {
+                    dos.writeUTF(courses.get(i));
+                    dos.writeInt(marks.get(i));
+                }
+
+                // Close the data output stream
+                dos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        SocketProducer socketProducer = new SocketProducer();
+        socketProducer.start();
+    }
+}
+
+
