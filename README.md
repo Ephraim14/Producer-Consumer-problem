@@ -243,35 +243,7 @@ class Consumer implements Runnable {
 
     // ... (continue with the rest of the Consumer code)
      // Parse the XML data and perform the required calculations
-    
-    /*private ITStudent parseXmlFile(File xmlFile) throws Exception {
-        DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-        Document doc = docBuilder.parse(xmlFile);
-
-        ITStudent student = new ITStudent();
-
-        Element rootElement = doc.getDocumentElement();
-        NodeList nameList = rootElement.getElementsByTagName("Name");
-        student.setStudentName(nameList.item(0).getTextContent());
-
-        NodeList idList = rootElement.getElementsByTagName("ID");
-        student.setStudentID(idList.item(0).getTextContent());
-
-        NodeList programmeList = rootElement.getElementsByTagName("Programme");
-        student.setProgramme(programmeList.item(0).getTextContent());
-
-        NodeList coursesList = rootElement.getElementsByTagName("Course");
-        for (int i = 0; i < coursesList.getLength(); i++) {
-            Element courseElement = (Element) coursesList.item(i);
-            String courseName = courseElement.getTextContent();
-            int mark = Integer.parseInt(courseElement.getAttribute("Mark"));
-            student.addCourse(courseName, mark);
-        }
-
-        return student;
-    }*/
-    
+     
     private ITStudent parseXmlFile(File xmlFile) throws Exception {
     DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
     DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -366,20 +338,6 @@ class Consumer implements Runnable {
         }
     }
 }
-   /* private void processXMLData(String xmlData) {
-        // Implement your XML parsing and processing logic here
-        // For simplicity, we'll just print the received XML data
-        System.out.println("Received XML Data: " + xmlData);}
-    }*/
-
-    /*private String readXMLDataFromFile(File xmlFile) {
-        // Implement your logic to read XML data from the file
-        // ...
-
-        // For demonstration purposes, we'll just return a sample XML data
-        return "<Student><Name>John Doe</Name><ID>12345678</ID><Programme>Computer Science</Programme></Student>";
-}*/
-
 
 public class Producer_Consumer_MINI_PROJECT {
 
@@ -412,7 +370,7 @@ public class Producer_Consumer_MINI_PROJECT {
     }
 }
 
-public class SocketProducer {
+/*public class SocketProducer {
 
     private ServerSocket serverSocket;
 
@@ -471,6 +429,196 @@ w2                // Send the list of courses and marks to the client
         SocketProducer socketProducer = new SocketProducer();
         socketProducer.start();
     }
-}
+}*/
 
+
+// Socket programming code added to producer consumer problem
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+public class ProducerConsumerSocket {
+    private static final int PORT = 12345;
+
+    public static void main(String[] args) {
+        new Thread(new Server()).start();
+        new Thread(new Client()).start();
+    }
+
+    static class ITStudent {
+        private String studentName;
+        private String studentID;
+        private String programme;
+        private List<String> courses;
+        private List<Integer> marks;
+
+        public ITStudent() {
+            courses = new ArrayList<>();
+            marks = new ArrayList<>();
+        }
+
+        public void setStudentName(String studentName) {
+            this.studentName = studentName;
+        }
+
+        public void setStudentID(String studentID) {
+            this.studentID = studentID;
+        }
+
+        public void setProgramme(String programme) {
+            this.programme = programme;
+        }
+
+        public void addCourse(String course, int mark) {
+            courses.add(course);
+            marks.add(mark);
+        }
+
+        // Getters for average mark and pass/fail status
+        public double getAverageMark() {
+            if (marks.isEmpty()) return 0.0;
+
+            int totalMarks = 0;
+            for (int mark : marks) {
+                totalMarks += mark;
+            }
+            return (double) totalMarks / marks.size();
+        }
+
+        public boolean isPass() {
+            return getAverageMark() >= 50;
+        }
+
+        @Override
+        public String toString() {
+            return "Student Name: " + studentName +
+                    "\nStudent ID: " + studentID +
+                    "\nProgramme: " + programme +
+                    "\nCourses and Marks: " + courses + " " + marks +
+                    "\nAverage Mark: " + getAverageMark() +
+                    "\nResult: " + (isPass() ? "Pass" : "Fail") +
+                    "\n";
+        }
+    }
+
+    static class Server implements Runnable {
+        private Random random;
+
+        public Server() {
+            random = new Random();
+        }
+
+        @Override
+        public void run() {
+            try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+                System.out.println("Server started. Listening on port " + PORT);
+                while (true) {
+                    Socket clientSocket = serverSocket.accept();
+                    System.out.println("Client connected: " + clientSocket.getInetAddress());
+
+                    ITStudent student = generateRandomStudent();
+                    String xmlData = convertToXml(student);
+
+                    DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+                    dataOutputStream.writeUTF(xmlData);
+                    dataOutputStream.flush();
+
+                    clientSocket.close();
+                    System.out.println("Data sent to client:\n" + xmlData);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        private ITStudent generateRandomStudent() {
+            ITStudent student = new ITStudent();
+            String[] names = { "John Doe", "Jane Smith", "Michael Johnson", "Emily Brown", "David Lee" };
+            String[] programmes = { "Computer Science", "Information Technology", "Software Engineering" };
+
+            student.setStudentName(names[random.nextInt(names.length)]);
+            student.setStudentID(String.format("%08d", random.nextInt(100000000)));
+            student.setProgramme(programmes[random.nextInt(programmes.length)]);
+
+            String[] courses = { "Mathematics", "Computer Programming", "Database Management", "Data Structures" };
+            for (String course : courses) {
+                student.addCourse(course, random.nextInt(101)); // Random marks between 0 and 100
+            }
+
+            return student;
+        }
+
+        private String convertToXml(ITStudent student) {
+            StringBuilder xmlBuilder = new StringBuilder();
+            xmlBuilder.append("<Student>");
+            xmlBuilder.append("<Name>").append(student.studentName).append("</Name>");
+            xmlBuilder.append("<ID>").append(student.studentID).append("</ID>");
+            xmlBuilder.append("<Programme>").append(student.programme).append("</Programme>");
+            List<String> courses = student.courses;
+            List<Integer> marks = student.marks;
+            for (int i = 0; i < courses.size(); i++) {
+                String course = courses.get(i);
+                int mark = marks.get(i);
+                xmlBuilder.append("<Course Mark=\"").append(mark).append("\">").append(course).append("</Course>");
+            }
+            xmlBuilder.append("</Student>");
+            return xmlBuilder.toString();
+        }
+    }
+
+    static class Client implements Runnable {
+        @Override
+        public void run() {
+            try (Socket socket = new Socket("localhost", PORT)) {
+                System.out.println("Connected to server: localhost on port " + PORT);
+
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                String xmlData = bufferedReader.readLine();
+
+                ITStudent student = parseXmlData(xmlData);
+                System.out.println("Received Student Information:\n" + student);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        private ITStudent parseXmlData(String xmlData) {
+            ITStudent student = new ITStudent();
+
+            // Implement your XML parsing logic here
+            // For simplicity, we'll assume the XML data format is correct
+            // and directly extract the required information
+
+            int startIndex = xmlData.indexOf("<Name>") + "<Name>".length();
+            int endIndex = xmlData.indexOf("</Name>");
+            student.setStudentName(xmlData.substring(startIndex, endIndex));
+
+            startIndex = xmlData.indexOf("<ID>") + "<ID>".length();
+            endIndex = xmlData.indexOf("</ID>");
+            student.setStudentID(xmlData.substring(startIndex, endIndex));
+
+            startIndex = xmlData.indexOf("<Programme>") + "<Programme>".length();
+            endIndex = xmlData.indexOf("</Programme>");
+            student.setProgramme(xmlData.substring(startIndex, endIndex));
+
+            startIndex = xmlData.indexOf("<Course Mark=\"");
+            while (startIndex != -1) {
+                startIndex += "<Course Mark=\"".length();
+                endIndex = xmlData.indexOf("\">", startIndex);
+                String course = xmlData.substring(endIndex + "\">".length(), xmlData.indexOf("</Course>", endIndex));
+                int markEndIndex = xmlData.indexOf("\"", startIndex);
+                int mark = Integer.parseInt(xmlData.substring(startIndex, markEndIndex));
+                student.addCourse(course, mark);
+                startIndex = xmlData.indexOf("<Course Mark=\"", endIndex);
+            }
+
+            return student;
+        }
+    }
+}
 
