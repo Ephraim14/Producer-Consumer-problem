@@ -122,7 +122,7 @@ class Producer implements Runnable {
         // Implement your random student data generation logic here
         // Generate random student name
     ITStudent student = new ITStudent();
-    String[] names = { "John Doe", "Jane Smith", "Michael Johnson", "Emily Brown", "David Lee" };
+    String[] names = { "Banele Dlamini", "Lungile Mamba", "Mlungisi Mabuza", "Sifiso Dlamini", "Lizwi Thwala" };
     Random random = new Random();
     int randomNameIndex = random.nextInt(names.length);
     student.setStudentName(names[randomNameIndex]);
@@ -476,7 +476,7 @@ public class ProducerConsumerSocket {
 
         private ITStudent generateRandomStudent() {
             ITStudent student = new ITStudent();
-            String[] names = { "John Doe", "Jane Smith", "Michael Johnson", "Emily Brown", "David Lee" };
+            String[] names = { "Banele Dlamini", "Lungile Mamba", "Mlungisi Mabuza", "Sifiso Dlamini", "Lizwi Thwala" };
             String[] programmes = { "Computer Science", "Information Technology", "Software Engineering" };
 
             student.setStudentName(names[random.nextInt(names.length)]);
